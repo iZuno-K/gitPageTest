@@ -1,1 +1,122 @@
-Hello World
+<!doctype html>
+<html>
+<head>Mic Analyser</head>
+<body>
+  <button onclick="toggleLiveInput()">use live input</button>
+  <br/><br/>
+  <hr/>
+  <canvas id="graph" width=256 height="256"></canvas>
+
+  <script type="text/javascript">
+
+  var audioContext = null;
+  var isPlaying = null;
+  var analyser = null;
+  var mediaStreamSource = null;
+
+
+
+  // window.onload: HTMLの読み込みが完了してから実行する
+  window.onload = function() {
+    //AudioContextをインスタンス化
+    audioContext = new (window.AudioContext||window.webkitAudioContext)();
+  }
+  //表示
+  var ctx =document.getElementById("graph").getContext("2d");
+  var gradbase = ctx.createLinearGradient(0, 0, 0,256);
+  gradbase.addColorStop(0, "rgb(20,22,20)");
+  gradbase.addColorStop(1, "rgb(20,20,200)");
+  var gradline = [];
+  for (var i=0; i<256; ++i) {
+    gradline[i] = ctx.createLinearGradient(0, 256 -i, 0, 256);
+    gradline[i].addColorStop(0,"rgb(255,0,0)");
+    gradline[i].addColorStop(1,"rgb(255," + i + ",0)");
+  }
+
+
+
+
+
+  //エラー処理用の関数
+  function error() {
+      alert('Stream generation failed.');
+  }
+
+  /*navigatorってのはブラウザに備え付けのもの。||でつながってるのは、ブラウザの種類ごとに名前が違うため、存在する名前を保存して使うようにしている。*/
+  function getUserMedia(dictionary, callback) {
+      try {
+          navigator.getUserMedia =
+          	navigator.getUserMedia ||
+          	navigator.webkitGetUserMedia ||
+          	navigator.mozGetUserMedia;
+          navigator.getUserMedia(dictionary, callback, error);
+      } catch (e) {
+          alert('getUserMedia threw exception :' + e);
+      }
+  }
+
+
+  //streamがおそらくマイクからとった音声データ
+  function gotStream(stream) {
+    // Create an AudioNode from the stream
+    //マイクを音源とする
+    mediaStreamSource = audioContext.createMediaStreamSource(stream);
+
+    // Connect it to the destination.
+    analyser = audioContext.createAnalyser();
+    analyser.fftSize = 2048;
+    mediaStreamSource.connect(analyser);
+    // updatePitch();
+
+    DrawGraph();
+
+  }
+
+
+  function toggleLiveInput() {
+    if (isPlaying) {
+      //stop playing and return
+      sourceNode.stop(0);
+      sourceNode = null;
+      analyser = null;
+      isPlaying = false;
+      if (!window.cancelAnimationFrame) {
+        window.cancelAnimationFrame = window.webkitCancelAnimationFrame;
+      }
+      window.cancelAnimationFrame(rafID);
+
+    }
+    getUserMedia({
+      "audio":{
+        //必ず適用する条件
+        "mandatory":{　
+          // エコー　自動音量調節　ノイズ除去　ハイパスフィルタ　無効か
+          "googEchoCancellation": "false",
+          "googAutoGainControl": "false",
+          "googNoiseSuppression": "false",
+          "googHighpassFilter": "false"
+        },
+        //満たせれば適用する条件
+        "optional": []
+      },
+    },gotStream);
+  }
+
+  function DrawGraph() {
+  &nbsp;&nbsp;&nbsp;&nbsp;ctx.fillStyle = gradbase;
+  &nbsp;&nbsp;&nbsp;&nbsp;ctx.fillRect(0, 0, 256, 256);
+  &nbsp;&nbsp;&nbsp;&nbsp;var data = new Uint8Array(256);
+  &nbsp;&nbsp;&nbsp;&nbsp;analyser.getByteTimeDomainData(data); //Waveform Data
+  &nbsp;&nbsp;&nbsp;&nbsp;for(var i = 0; i < 256; ++i) {
+  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ctx.fillStyle = gradline[data[i]];
+  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ctx.fillRect(i, 256 - data[i], 1, data[i]);
+  &nbsp;&nbsp;&nbsp;&nbsp;}
+  }
+
+  // setInterval(DrawGraph, 100);
+
+
+  </script>
+
+</body>
+</html>
