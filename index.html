@@ -16,12 +16,12 @@
 
 
 
-  // window.onload: HTML‚Ì“Ç‚İ‚İ‚ªŠ®—¹‚µ‚Ä‚©‚çÀs‚·‚é
+  // window.onload: HTMLã®èª­ã¿è¾¼ã¿ãŒå®Œäº†ã—ã¦ã‹ã‚‰å®Ÿè¡Œã™ã‚‹
   window.onload = function() {
-    //AudioContext‚ğƒCƒ“ƒXƒ^ƒ“ƒX‰»
+    //AudioContextã‚’ã‚¤ãƒ³ã‚¹ã‚¿ãƒ³ã‚¹åŒ–
     audioContext = new (window.AudioContext||window.webkitAudioContext)();
   }
-  //•\¦
+  //è¡¨ç¤º
   var ctx =document.getElementById("graph").getContext("2d");
   var gradbase = ctx.createLinearGradient(0, 0, 0,256);
   gradbase.addColorStop(0, "rgb(20,22,20)");
@@ -37,12 +37,12 @@
 
 
 
-  //ƒGƒ‰[ˆ——p‚ÌŠÖ”
+  //ã‚¨ãƒ©ãƒ¼å‡¦ç†ç”¨ã®é–¢æ•°
   function error() {
       alert('Stream generation failed.');
   }
 
-  /*navigator‚Á‚Ä‚Ì‚Íƒuƒ‰ƒEƒU‚É”õ‚¦•t‚¯‚Ì‚à‚ÌB||‚Å‚Â‚È‚ª‚Á‚Ä‚é‚Ì‚ÍAƒuƒ‰ƒEƒU‚Ìí—Ş‚²‚Æ‚É–¼‘O‚ªˆá‚¤‚½‚ßA‘¶İ‚·‚é–¼‘O‚ğ•Û‘¶‚µ‚Äg‚¤‚æ‚¤‚É‚µ‚Ä‚¢‚éB*/
+  /*navigatorã£ã¦ã®ã¯ãƒ–ãƒ©ã‚¦ã‚¶ã«å‚™ãˆä»˜ã‘ã®ã‚‚ã®ã€‚||ã§ã¤ãªãŒã£ã¦ã‚‹ã®ã¯ã€ãƒ–ãƒ©ã‚¦ã‚¶ã®ç¨®é¡ã”ã¨ã«åå‰ãŒé•ã†ãŸã‚ã€å­˜åœ¨ã™ã‚‹åå‰ã‚’ä¿å­˜ã—ã¦ä½¿ã†ã‚ˆã†ã«ã—ã¦ã„ã‚‹ã€‚*/
   function getUserMedia(dictionary, callback) {
       try {
           navigator.getUserMedia =
@@ -56,10 +56,10 @@
   }
 
 
-  //stream‚ª‚¨‚»‚ç‚­ƒ}ƒCƒN‚©‚ç‚Æ‚Á‚½‰¹ºƒf[ƒ^
+  //streamãŒãŠãã‚‰ããƒã‚¤ã‚¯ã‹ã‚‰ã¨ã£ãŸéŸ³å£°ãƒ‡ãƒ¼ã‚¿
   function gotStream(stream) {
     // Create an AudioNode from the stream
-    //ƒ}ƒCƒN‚ğ‰¹Œ¹‚Æ‚·‚é
+    //ãƒã‚¤ã‚¯ã‚’éŸ³æºã¨ã™ã‚‹
     mediaStreamSource = audioContext.createMediaStreamSource(stream);
 
     // Connect it to the destination.
@@ -88,29 +88,29 @@
     }
     getUserMedia({
       "audio":{
-        //•K‚¸“K—p‚·‚éğŒ
-        "mandatory":{@
-          // ƒGƒR[@©“®‰¹—Ê’²ß@ƒmƒCƒYœ‹@ƒnƒCƒpƒXƒtƒBƒ‹ƒ^@–³Œø‚©
+        //å¿…ãšé©ç”¨ã™ã‚‹æ¡ä»¶
+        "mandatory":{ã€€
+          // ã‚¨ã‚³ãƒ¼ã€€è‡ªå‹•éŸ³é‡èª¿ç¯€ã€€ãƒã‚¤ã‚ºé™¤å»ã€€ãƒã‚¤ãƒ‘ã‚¹ãƒ•ã‚£ãƒ«ã‚¿ã€€ç„¡åŠ¹ã‹
           "googEchoCancellation": "false",
           "googAutoGainControl": "false",
           "googNoiseSuppression": "false",
           "googHighpassFilter": "false"
         },
-        //–‚½‚¹‚ê‚Î“K—p‚·‚éğŒ
+        //æº€ãŸã›ã‚Œã°é©ç”¨ã™ã‚‹æ¡ä»¶
         "optional": []
       },
     },gotStream);
   }
 
   function DrawGraph() {
-  &nbsp;&nbsp;&nbsp;&nbsp;ctx.fillStyle = gradbase;
-  &nbsp;&nbsp;&nbsp;&nbsp;ctx.fillRect(0, 0, 256, 256);
-  &nbsp;&nbsp;&nbsp;&nbsp;var data = new Uint8Array(256);
-  &nbsp;&nbsp;&nbsp;&nbsp;analyser.getByteTimeDomainData(data); //Waveform Data
-  &nbsp;&nbsp;&nbsp;&nbsp;for(var i = 0; i < 256; ++i) {
-  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ctx.fillStyle = gradline[data[i]];
-  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ctx.fillRect(i, 256 - data[i], 1, data[i]);
-  &nbsp;&nbsp;&nbsp;&nbsp;}
+  Â Â Â Â ctx.fillStyle = gradbase;
+  Â Â Â Â ctx.fillRect(0, 0, 256, 256);
+  Â Â Â Â var data = new Uint8Array(256);
+  Â Â Â Â analyser.getByteTimeDomainData(data); //Waveform Data
+  Â Â Â Â for(var i = 0; i < 256; ++i) {
+  Â Â Â Â Â Â Â Â ctx.fillStyle = gradline[data[i]];
+  Â Â Â Â Â Â Â Â ctx.fillRect(i, 256 - data[i], 1, data[i]);
+  Â Â Â Â }
   }
 
   // setInterval(DrawGraph, 100);
