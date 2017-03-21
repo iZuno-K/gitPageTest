@@ -3,14 +3,26 @@
 <head>Mic Analyser Test</head>
 <body>
   <button onclick="toggleLiveInput()">use live input</button>
-  <br/><br/>
+  <br/>
+  <div id="counter">times of calling function
+  </div>
+  <br/>
   <hr/>
   <canvas id="graph" width=256 height="256"></canvas>
 
   <script type="text/javascript">
 
+  //for debug
+  var count  = new Object();
+  count.i = 0;
+  count.f  = function() {
+    this.i++;
+    var html = this.i;
+    document.getElementById("counter").innerHTML=html;
+  }
+
+
   var audioContext = null;
-  var isPlaying = null;
   var analyser = null;
   var mediaStreamSource = null;
 
@@ -58,6 +70,8 @@
 
   //streamがおそらくマイクからとった音声データ
   function gotStream(stream) {
+    count.f(); //debug
+
     // Create an AudioNode from the stream
     //マイクを音源とする
     mediaStreamSource = audioContext.createMediaStreamSource(stream);
@@ -74,18 +88,6 @@
 
 
   function toggleLiveInput() {
-    if (isPlaying) {
-      //stop playing and return
-      sourceNode.stop(0);
-      sourceNode = null;
-      analyser = null;
-      isPlaying = false;
-      if (!window.cancelAnimationFrame) {
-        window.cancelAnimationFrame = window.webkitCancelAnimationFrame;
-      }
-      window.cancelAnimationFrame(rafID);
-
-    }
     getUserMedia({
       "audio":{
         //必ず適用する条件
@@ -102,15 +104,21 @@
     },gotStream);
   }
 
+  var rafID = null;
+
   function DrawGraph() {
       ctx.fillStyle = gradbase;
       ctx.fillRect(0, 0, 256, 256);
+      // ctx.clearRect(0, 0, canvas.width, canvas.height);
       var data = new Uint8Array(256);
       analyser.getByteTimeDomainData(data); //Waveform Data
       for(var i = 0; i < 256; ++i) {
           ctx.fillStyle = gradline[data[i]];
           ctx.fillRect(i, 256 - data[i], 1, data[i]);
       }
+
+      if (!window.requestAnimationFrame) window.requestAnimationFrame = window.webkitRequestAnimationFrame;
+      rafID = window.requestAnimationFrame(DrawGraph);
   }
 
   // setInterval(DrawGraph, 100);
