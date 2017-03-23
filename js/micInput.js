@@ -1,5 +1,3 @@
-alert('!!!!!!!!!!!!!!1');
-
 //for debug
 var count  = new Object();
 count.i = 0;
@@ -13,20 +11,26 @@ count.f  = function() {
 var audioContext = null;
 var analyser = null;
 var mediaStreamSource = null;
-var width = 256;
-var height = 256;
-
-
 
 // window.onload: HTMLの読み込みが完了してから実行する
 window.onload = function() {
   //AudioContextをインスタンス化
   audioContext = new (window.AudioContext||window.webkitAudioContext)();
 }
-//表示
-var ctx =document.getElementById("graph").getContext("2d");
-ctx.width = width;
-ctx.height = height;
+//for display
+var drawSpace = document.getElementById("graph");
+var w = Math.max(document.documentElement.clientWidth, window.innerWidth || 0);
+var h = Math.max(document.documentElement.clientHeight, window.innerHeight || 0);
+var size = w < h ? w : h;
+size = Math.round(size * ratio);
+// canvas1.style.width = size + 'px';
+// canvas1.style.height = size + 'px';
+drawSpace.width = size;
+drawSpace.height = size;
+
+var ctx =drawSpace.getContext("2d");
+ctx.width = size;
+ctx.height = size;
 var gradbase = ctx.createLinearGradient(0, 0, 0,ctx.height);
 gradbase.addColorStop(0, "rgb(20,22,20)");
 gradbase.addColorStop(1, "rgb(20,20,200)");
@@ -101,12 +105,14 @@ function DrawGraph() {
   ctx.fillStyle = gradbase;
   ctx.fillRect(0, 0, ctx.width, ctx.width);
   // ctx.clearRect(0, 0, canvas.width, canvas.height);
-  var data = new Uint8Array(ctx.width);
+  var bufferLength = analyser.frequencyBinCount;
+  var data = new Uint8Array(bufferLength);
   analyser.getByteTimeDomainData(data); //Waveform Data
   // analyser.getByteFrequencyData(data);
-  for(var i = 0; i < ctx.width; ++i) {
+  var end  = ctx.width < bufferLength ? ctx.width : bufferLength;
+  for(var i = 0; i < end; ++i) {
     ctx.fillStyle = gradline[data[i]];
-    ctx.fillRect(i*step, 256 - data[i], step, data[i]);
+    ctx.fillRect(i*step, ctx.height - data[i]*ctx.height/256, step, data[i]*ctx.height/256);
   }
 
   if (!window.requestAnimationFrame) window.requestAnimationFrame = window.webkitRequestAnimationFrame;
