@@ -22,7 +22,6 @@ var drawSpace = document.getElementById("graph");
 var w = Math.max(document.documentElement.clientWidth, window.innerWidth || 0);
 var h = Math.max(document.documentElement.clientHeight, window.innerHeight || 0);
 var size = w < h ? w : h;
-size = Math.round(size * ratio);
 // canvas1.style.width = size + 'px';
 // canvas1.style.height = size + 'px';
 drawSpace.width = size;
