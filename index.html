@@ -5,8 +5,13 @@
 <body>
   <button onclick="toggleLiveInput()">use live input</button>
   <br/>
-  <div id="counter">times of calling function
-  </div>
+  <table>
+    <tr>
+      <td>Analyze mode:</td>
+      <td><select id="mode" onchange="setParameter()"><option>Frequency</option><option>TimeDomain</option>
+      </select></td>
+    </tr>
+  </table>
   <br/>
   <hr/>
   <canvas id="graph" width=256 height="256"></canvas>

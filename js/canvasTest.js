@@ -28,3 +28,8 @@ window.onload = function(){
   ctx.fillRect(0, 0, ctx.width, ctx.height);
   alert(ctx.width + ':' + ctx.height)
 }
+
+function setParameter() {
+  var mode = document.getElementById("mode").selectedIndex;
+  alert(mode);
+}

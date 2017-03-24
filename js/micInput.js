@@ -1,16 +1,8 @@
-//for debug
-var count  = new Object();
-count.i = 0;
-count.f  = function() {
-  this.i++;
-  var html = this.i;
-  document.getElementById("counter").innerHTML=html;
-}
-
-
 var audioContext = null;
 var analyser = null;
 var mediaStreamSource = null;
+var mode = 0;
+
 
 // window.onload: HTMLの読み込みが完了してから実行する
 window.onload = function() {
@@ -65,8 +57,6 @@ function getUserMedia(dictionary, callback) {
 
 //streamがおそらくマイクからとった音声データ
 function gotStream(stream) {
-  count.f(); //debug
-
   // Create an AudioNode from the stream
   //Set a microphone as a source of audio
   mediaStreamSource = audioContext.createMediaStreamSource(stream);
@@ -105,9 +95,11 @@ function DrawGraph() {
   ctx.fillRect(0, 0, ctx.width, ctx.width);
   // ctx.clearRect(0, 0, canvas.width, canvas.height);
   var bufferLength = analyser.frequencyBinCount;
+
   var data = new Uint8Array(bufferLength);
-  analyser.getByteTimeDomainData(data); //Waveform Data
-  // analyser.getByteFrequencyData(data);
+  if (mode == 0) analyser.getByteFrequencyData(data);
+  else analyser.getByteTimeDomainData(data); //Waveform Data
+
   var end  = ctx.width < bufferLength ? ctx.width : bufferLength;
   for(var i = 0; i < end; ++i) {
     ctx.fillStyle = gradline[data[i]];
@@ -117,5 +109,10 @@ function DrawGraph() {
   if (!window.requestAnimationFrame) window.requestAnimationFrame = window.webkitRequestAnimationFrame;
   rafID = window.requestAnimationFrame(DrawGraph);
 }
+
+function setParameter(){
+  mode = document.getElementById("mode").selectedIndex;
+}
+
 
 // setInterval(DrawGraph, 100);
