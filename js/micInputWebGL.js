@@ -5,41 +5,53 @@ var mode = 0;
 //  var wait = 100.0;
 var fps,fpsInterval,then,now,elapsed;
 
+// for draw graph
+var fftSize = 2048;
+var rafID = null;
+var offset = 0;
+var line_num = 100;
+var geometrys,lines;
+var material = new THREE.LineBasicMaterial({
+  color: 0xffffff
+});
+var renderingCount = 0;
 // window.onload: HTMLの読み込みが完了してから実行する
 window.onload = function() {
   //AudioContextをインスタンス化
   audioContext = new (window.AudioContext||window.webkitAudioContext)();
 }
 //for display
-var drawSpace = document.getElementById("graph");
+// var drawSpace = document.getElementById("graph");
 var w = Math.max(document.documentElement.clientWidth, window.innerWidth || 0);
 var h = Math.max(document.documentElement.clientHeight, window.innerHeight || 0);
 var size = w < h ? w : h;
-// canvas1.style.width = size + 'px';
-// canvas1.style.height = size + 'px';
-drawSpace.width = size;
-drawSpace.height = size;
 
-var ctx =drawSpace.getContext("2d");
-ctx.width = size;
-ctx.height = size;
-var gradbase = ctx.createLinearGradient(0, 0, 0,ctx.height);
-gradbase.addColorStop(0, "rgb(20,22,20)");
-gradbase.addColorStop(1, "rgb(20,20,200)");
-var gradline = [];
-for (var i=0; i<ctx.height; ++i) {
-  gradline[i] = ctx.createLinearGradient(0, ctx.height -i, 0, ctx.height);
-  gradline[i].addColorStop(0,"rgb(255,0,0)");
-  gradline[i].addColorStop(1,"rgb(255," + i + ",0)");
-}
+// drawSpace.width = size;
+// drawSpace.height = size;
 
-// setInterval(DrawGraph, wait);
-(function () {
-  then = Date.now();
-  fps = 60;
-  fpsInterval = 1000/fps;
-}());
+// var ctx =drawSpace.getContext("2d");
+// ctx.width = size;
+// ctx.height = size;
 
+
+// Rendering settings
+var renderer, scene;
+
+scene = new THREE.Scene();
+
+var fov = 60;
+var aspect = 1.0; //size/size=1.0
+var near = 1;
+var far = 10;
+var camera = new THREE.PerspectiveCamera(fov, aspect, near, far);
+camera.position.set(0,2,5);
+camera.lookAt(scene.position);
+
+var renderer = new THREE.WebGLRenderer();
+renderer.setSize(size, size);
+renderer.setPixelRatio(window.devicePixelRatio);
+document.getElementById('container').appendChild(renderer.domElement);
+ArrayInit();
 
 
 
@@ -73,7 +85,7 @@ function gotStream(stream) {
 
   // Connect it to the destination.
   analyser = audioContext.createAnalyser();
-  analyser.fftSize = 2048;
+  analyser.fftSize = fftSize;
   mediaStreamSource.connect(analyser);
 
   document.getElementById("min").value = analyser.minDecibels;
@@ -101,51 +113,67 @@ function toggleLiveInput() {
   },gotStream);
 }
 
-var rafID = null;
 
-function fpsControll(){
-  if (!window.requestAnimationFrame) window.requestAnimationFrame = window.webkitRequestAnimationFrame; 
-  rafID = requestAnimationFrame (fpsControll);
-  now = Date.now();
-  elapsed = now - then;
-  if (elapsed > fpsInterval) {
-    DrawGraph();
-    then = now;
+//init geometry and line arrays
+function ArrayInit() {
+  geometrys = new Array(line_num);
+  lines = new Array(line_num);
+
+  for (var i = 0; i < geometrys.length; i++) {
+    geometrys[i] = new THREE.Geometry();
+    for (var j = 0; j < fftSize / 2; j++) {
+      geometrys[i].vertices.push(new THREE.Vector3(0, 0, 0));
+    }
+    lines[i] = new THREE.Line(geometrys[i], material);
   }
-  // console.log(then);
 }
 
 function DrawGraph() {
-  var step = 1;
-  ctx.fillStyle = gradbase;
-  ctx.fillRect(0, 0, ctx.width, ctx.width);
-  // ctx.clearRect(0, 0, canvas.width, canvas.height);
   var bufferLength = analyser.frequencyBinCount;
+  var tuning_x = 4;
+  var tuning_y = 5;
+  var offset_x = 2.5;
+  var offset_y = 2.5;
 
   var data = new Uint8Array(bufferLength);
   if (mode == 0) analyser.getByteFrequencyData(data);
   else analyser.getByteTimeDomainData(data); //Waveform Data
 
-  var end = ctx.width < bufferLength ? ctx.width : bufferLength;
-  // Frequency mode
-  if (mode == 0) {
-    step = 3;
-    for(var i = 0; i < end; ++i) {
-      ctx.fillStyle = gradline[data[i]];
-      ctx.fillRect(i*step, ctx.height - data[i]*ctx.height/256, step, data[i]*ctx.height/256);
-    }
-  } else {
-    // TimeDomain Mode
-    step = 1;
-    ctx.lineWidth = 2;
-    ctx.strokeStyle = 'rgb(255, 255, 255)';
-    ctx.beginPath();
-    ctx.moveTo(0, data[0]);
-    for (var i = 0; i < end; ++i) {
-      ctx.lineTo(i*step, data[i]);
-    }
-    ctx.stroke();
+  // var end = ctx.width < bufferLength ? ctx.width : bufferLength;
+
+  //delete oldest line and geometry
+  var oldest  = lines.pop();
+  scene.remove(oldest);
+  oldest.geometry.dispose();
+  oldest.material.dispose();
+  geometrys.pop();
+
+  //add new geometry and line
+  geometrys.unshift(new THREE.Geometry());
+  for (var i = 0; i < fftSize / 2; i++) {
+    geometrys[0].vertices.push(new THREE.Vector3(i/bufferLength*tuning_x - offset_x, data[i]/255*tuning_y- offset_y, offset));
   }
+  lines.unshift(new THREE.Line( geometrys[0], material ));
+  camera.position.set(0, 2, 5+offset);
+
+  if (renderingCount < 150) {
+    scene.add(lines[0]);
+  }
+  else {
+    console.log('reflesh');
+    renderingCount = 0;
+    scene = new THREE.Scene();
+    for (var i = 0; i < lines.length; i++){
+      scene.add(lines[i]);
+    }
+  }
+
+  
+
+  offset += 0.1;
+
+  renderer.render(scene, camera);
+  renderingCount++;
 
   if (!window.requestAnimationFrame) window.requestAnimationFrame = window.webkitRequestAnimationFrame;
   rafID = window.requestAnimationFrame(DrawGraph);

@@ -23,7 +23,7 @@ camera.lookAt(_scene.position);
 var _renderer = new THREE.WebGLRenderer();
 _renderer.setSize(size, size);
 _renderer.setPixelRatio(window.devicePixelRatio);
-document.getElementById('container').appendChild(_renderer.domElement);
+document.getElementById('graph').appendChild(_renderer.domElement);
 
 //Light
 var directionaLight = new THREE.DirectionalLight(0xffffff);
