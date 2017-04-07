@@ -9,7 +9,7 @@ var fps,fpsInterval,then,now,elapsed;
 var fftSize = 2048;
 var rafID = null;
 var offset = 0;
-var line_num = 50;
+var line_num = 25;
 var geometrys,lines;
 var material = new THREE.LineBasicMaterial({
   color: 0xffffff
