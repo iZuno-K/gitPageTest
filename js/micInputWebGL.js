@@ -9,7 +9,7 @@ var fps,fpsInterval,then,now,elapsed;
 var fftSize = 2048;
 var rafID = null;
 var offset = 0;
-var line_num = 100;
+var line_num = 50;
 var geometrys,lines;
 var material = new THREE.LineBasicMaterial({
   color: 0xffffff
@@ -134,6 +134,7 @@ function DrawGraph() {
   var tuning_y = 5;
   var offset_x = 2.5;
   var offset_y = 2.5;
+  var default_camera_z = 5;
 
   var data = new Uint8Array(bufferLength);
   if (mode == 0) analyser.getByteFrequencyData(data);
@@ -154,7 +155,7 @@ function DrawGraph() {
     geometrys[0].vertices.push(new THREE.Vector3(i/bufferLength*tuning_x - offset_x, data[i]/255*tuning_y- offset_y, offset));
   }
   lines.unshift(new THREE.Line( geometrys[0], material ));
-  camera.position.set(0, 2, 5+offset);
+  camera.position.set(0, 2, default_camera_z + offset);
 
   if (renderingCount < 150) {
     scene.add(lines[0]);
@@ -170,7 +171,7 @@ function DrawGraph() {
 
   
 
-  offset += 0.1;
+  offset += (far - default_camera_z) / line_num;
 
   renderer.render(scene, camera);
   renderingCount++;
