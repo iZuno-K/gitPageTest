@@ -2,17 +2,14 @@ var audioContext = null;
 var analyser = null;
 var mediaStreamSource = null;
 var mode = 0;
-//  var wait = 100.0;
-var fps,fpsInterval,then,now,elapsed;
 
 // for draw graph
 var fftSize = 2048;
 var rafID = null;
 var offset = 0;
-var line_num = 25;
-var geometrys,lines;
-var material = new THREE.LineBasicMaterial({
-  color: 0xffffff
+var material = new THREE.MeshBasicMaterial({
+  color: 0xffffff,
+  wireframe: true
 });
 var renderingCount = 0;
 // window.onload: HTMLの読み込みが完了してから実行する
@@ -35,17 +32,25 @@ scene = new THREE.Scene();
 var fov = 60;
 var aspect = 1.0; //size/size=1.0
 var near = 1;
-var far = 10;
+var far = 100;
 var camera = new THREE.PerspectiveCamera(fov, aspect, near, far);
-camera.position.set(0,2,5);
+camera.position.set(0,50,50);
 camera.lookAt(scene.position);
 
 var renderer = new THREE.WebGLRenderer();
 renderer.setSize(size, size);
 renderer.setPixelRatio(window.devicePixelRatio);
 document.getElementById('container').appendChild(renderer.domElement);
-ArrayInit();
 
+
+var x_division = 10;
+var y_division = 10;
+var geometry = new THREE.PlaneGeometry(50, 50, x_division, y_division);
+var plane = new THREE.Mesh(geometry, material);
+plane.rotation.x = Math.PI / -2;
+scene.add(plane);
+renderer.render(scene, camera);
+console.log(plane.geometry.vertices);
 
 
 
@@ -86,7 +91,6 @@ function gotStream(stream) {
   // Setup();  
 
   DrawGraph();
-  // fpsControll();
 
 }
 
@@ -107,64 +111,25 @@ function toggleLiveInput() {
 }
 
 
-//init geometry and line arrays
-function ArrayInit() {
-  geometrys = new Array(line_num);
-  lines = new Array(line_num);
-
-  for (var i = 0; i < geometrys.length; i++) {
-    geometrys[i] = new THREE.Geometry();
-    for (var j = 0; j < fftSize / 2; j++) {
-      geometrys[i].vertices.push(new THREE.Vector3(0, 0, 0));
-    }
-    lines[i] = new THREE.Line(geometrys[i], material);
-  }
-}
-
 function DrawGraph() {
-  var bufferLength = analyser.frequencyBinCount;
-  var tuning_x = 4;
-  var tuning_y = 5;
-  var offset_x = 2.5;
-  var offset_y = 2.5;
-  var default_camera_z = 5;
+  plane.geometry.verticesNeedUpdate = true;
+  var offset = 128;
+  var tuning = 200.0;
 
+  var bufferLength = analyser.frequencyBinCount;
   var data = new Uint8Array(bufferLength);
   if (mode == 0) analyser.getByteFrequencyData(data);
   else analyser.getByteTimeDomainData(data); //Waveform Data
 
-  // var end = ctx.width < bufferLength ? ctx.width : bufferLength;
-
-  //delete oldest line and geometry
-  var oldest  = lines.pop();
-  scene.remove(oldest);
-  oldest.geometry.dispose();
-  oldest.material.dispose();
-  geometrys.pop();
-
-  //add new geometry and line
-  geometrys.unshift(new THREE.Geometry());
-  for (var i = 0; i < fftSize / 2; i++) {
-    geometrys[0].vertices.push(new THREE.Vector3(i/bufferLength*tuning_x - offset_x, data[i]/255*tuning_y- offset_y, offset));
+  for (var i = plane.geometry.vertices.length - 1; i > x_division; i--) {
+    plane.geometry.vertices[i].z = plane.geometry.vertices[i - x_division - 1].z;
+    console.log(plane.geometry.vertices[i - x_division - 1].z);
   }
-  lines.unshift(new THREE.Line( geometrys[0], material ));
-  camera.position.set(0, 2, default_camera_z + offset);
-
-  if (renderingCount < 150) {
-    scene.add(lines[0]);
-  }
-  else {
-    console.log('reflesh');
-    renderingCount = 0;
-    scene = new THREE.Scene();
-    for (var i = 0; i < lines.length; i++){
-      scene.add(lines[i]);
-    }
+  var interval = Math.floor(data.length / x_division);
+  for (var i = 0; i < x_division + 1; i++) {
+    plane.geometry.vertices[i].z = data[i*interval] - offset;
   }
 
-  
-
-  offset += (far - default_camera_z) / line_num;
 
   renderer.render(scene, camera);
   renderingCount++;
@@ -179,8 +144,6 @@ function setParameter(){
   analyser.minDecibels = parseFloat(document.getElementById("min").value);
   analyser.maxDecibels = parseFloat(document.getElementById("max").value);
   analyser.smoothingTimeConstant = parseFloat(document.getElementById("smoothing").value);
-  fps = parseFloat(document.getElementById("wait").value);
-  fpsInterval = 1000.0/fps;
 }
 
 
