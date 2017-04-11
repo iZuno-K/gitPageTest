@@ -8,8 +8,7 @@ var fftSize = 2048;
 var rafID = null;
 var offset = 0;
 var material = new THREE.MeshBasicMaterial({
-  color: 0xffffff,
-  wireframe: true
+  color: 0x00b2ff
 });
 var renderingCount = 0;
 // window.onload: HTMLの読み込みが完了してから実行する
@@ -29,6 +28,22 @@ var renderer, scene;
 
 scene = new THREE.Scene();
 
+var light;
+light = new THREE.DirectionalLight( 0xffffff, 1 );
+light.position.set( 20, 40, 15 );
+light.target.position.copy( scene.position );
+light.castShadow = true;
+light.shadowCameraLeft = -60;
+light.shadowCameraTop = -60;
+light.shadowCameraRight = 60;
+light.shadowCameraBottom = 60;
+light.shadowCameraNear = 20;
+light.shadowCameraFar = 200;
+light.shadowBias = -.0001
+light.shadowMapWidth = light.shadowMapHeight = 2048;
+light.shadowDarkness = .7;
+scene.add(light);
+
 var fov = 60;
 var aspect = 1.0; //size/size=1.0
 var near = 1;
@@ -37,16 +52,22 @@ var camera = new THREE.PerspectiveCamera(fov, aspect, near, far);
 camera.position.set(0,50,50);
 camera.lookAt(scene.position);
 
-var renderer = new THREE.WebGLRenderer();
+renderer = new THREE.WebGLRenderer();
+renderer.shadowMapEnabled = true
 renderer.setSize(size, size);
 renderer.setPixelRatio(window.devicePixelRatio);
-document.getElementById('container').appendChild(renderer.domElement);
+document.body.appendChild(renderer.domElement);
 
 
-var x_division = 10;
-var y_division = 10;
+var x_division = 50;
+var y_division = 25;
 var geometry = new THREE.PlaneGeometry(50, 50, x_division, y_division);
+geometry.computeFaceNormals();
+geometry.computeVertexNormals();
+
 var plane = new THREE.Mesh(geometry, material);
+plane.castShadow = true;
+plane.receiveShadow = true;
 plane.rotation.x = Math.PI / -2;
 scene.add(plane);
 renderer.render(scene, camera);
@@ -113,6 +134,11 @@ function toggleLiveInput() {
 
 function DrawGraph() {
   plane.geometry.verticesNeedUpdate = true;
+  plane.geometry.computeFaceNormals();
+  plane.geometry.computeVertexNormals();
+  plane.castShadow = true;
+  plane.receiveShadow = true;
+
   var offset = 128;
   var tuning = 200.0;
 
